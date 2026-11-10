@@ -1,15 +1,12 @@
 package com.cwfreeman.darktable;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintStream;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
@@ -37,27 +34,8 @@ public class Main {
         }
         List<File> files = paths.stream().map(File::new).flatMap(Main::filesFor).toList();
 
-        RenamePlan plan = RenamePlan.of(files);
-        plan.skipped().forEach(skipped -> err.println("skipped " + skipped.file() + ": " + skipped.reason()));
-        Function<RenamePlan.Rename, Boolean> carryOut = r -> carryOut(r, rename, out, err);
-        boolean allDone = plan.renames().stream()
-                .map(carryOut)
-                .reduce(true, Boolean::logicalAnd);
-        return allDone ? 0 : 1;
-    }
-
-    /** Prints a rename and, when asked to, makes it; false when the rename failed. */
-    private static boolean carryOut(RenamePlan.Rename r, boolean rename, PrintStream out, PrintStream err) {
-        out.println(r.from() + " -> " + r.to().getName());
-        if (rename) {
-            try {
-                Files.move(r.from().toPath(), r.to().toPath());
-            } catch (IOException e) {
-                err.println("could not rename " + r.from() + ": " + e);
-                return false;
-            }
-        }
-        return true;
+        Renamer renamer = rename ? new FileRenamer(out, err) : new DryRunRenamer(out, err);
+        return renamer.run(files);
     }
 
     private static Stream<File> imagesIn(File directory) {
