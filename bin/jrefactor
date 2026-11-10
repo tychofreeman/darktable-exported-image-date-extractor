@@ -1,0 +1,8 @@
+#!/bin/sh
+# Runs one java-refactor-mcp tool from the command line (run it with no arguments
+# for usage), with the jar bin/jrefactor-env locates.
+set -eu
+here=$(cd "$(dirname "$0")/.." && pwd)
+. "$here/bin/jrefactor-env"
+[ -f "$jar" ] || { echo "jrefactor: no jar at $jar (set JREFACTOR_JAR)" >&2; exit 1; }
+exec "${JAVA_HOME:+$JAVA_HOME/bin/}java" -cp "$jar" io.github.tychofreeman.jrefactor.Cli "$@"

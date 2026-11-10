@@ -1,0 +1,11 @@
+#!/bin/sh
+# Claude Code hook (PreToolUse, PostToolUse, PostToolUseFailure; .claude/settings.json):
+# appends each tool call to .claude/session-log/<branch>.jsonl through SessionLog in the jar
+# bin/jrefactor-env locates. It never blocks a call: with no jar, or on any error, it logs
+# nothing and exits 0.
+here=$(cd "$(dirname "$0")/.." && pwd)
+. "$here/bin/jrefactor-env"
+[ -f "$jar" ] || exit 0
+"${JAVA_HOME:+$JAVA_HOME/bin/}java" -XX:TieredStopAtLevel=1 -XX:+UseSerialGC \
+  -cp "$jar" io.github.tychofreeman.jrefactor.SessionLog >/dev/null 2>&1
+exit 0

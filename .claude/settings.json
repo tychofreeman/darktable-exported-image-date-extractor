@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {"matcher": "Read|Bash", "hooks": [{"type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/bin/read-guard"}]},
+      {"matcher": "Edit|Write|MultiEdit|Bash", "hooks": [{"type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/bin/write-guard"}]},
+      {"matcher": "*", "hooks": [{"type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/bin/session-log"}]}
+    ],
+    "PostToolUse": [
+      {"matcher": "*", "hooks": [{"type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/bin/session-log"}]}
+    ],
+    "PostToolUseFailure": [
+      {"matcher": "*", "hooks": [{"type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/bin/session-log"}]}
+    ]
+  }
+}

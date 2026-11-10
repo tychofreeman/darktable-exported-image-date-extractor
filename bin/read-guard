@@ -1,0 +1,10 @@
+#!/bin/sh
+# Claude Code hook (PreToolUse; .claude/settings.json): refuses reading Java source other than
+# through the jrefactor tools, through Guard in the jar bin/jrefactor-env locates.
+# With no jar, or on any error, it prints nothing and the call goes ahead.
+here=$(cd "$(dirname "$0")/.." && pwd)
+. "$here/bin/jrefactor-env"
+[ -f "$jar" ] || exit 0
+"${JAVA_HOME:+$JAVA_HOME/bin/}java" -XX:TieredStopAtLevel=1 -XX:+UseSerialGC \
+  -cp "$jar" io.github.tychofreeman.jrefactor.Guard read 2>/dev/null
+exit 0
