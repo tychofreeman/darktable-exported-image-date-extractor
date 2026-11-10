@@ -27,9 +27,10 @@ the code you will change into its own method, add the parameter or field the new
 behaviour will need, move a declaration to where the change belongs.
 
 One branch and one PR per item, never commits to `master`. There is no CI yet:
-before pushing, run `./mvnw verify` (see "Build and test"), and merge your own PR
-once it passes. When the user says "do X, then Y", do them in order, each in its
-own PR.
+before pushing, run `./mvnw verify` (see "Build and test"). Do not merge your
+own PR: the user reviews and merges it, or asks you to merge it (the user,
+2026-11-10; merging your own once `verify` passed was the rule it replaced).
+When the user says "do X, then Y", do them in order, each in its own PR.
 
 When a rule could reasonably go more than one way, set out two or three options
 with what each costs, let the user choose, and record the choice with the
