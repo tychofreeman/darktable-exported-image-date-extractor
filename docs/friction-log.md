@@ -18,6 +18,7 @@ Needed: `Main` in `src/main/java` (default package) moved to
 Done by hand: `git mv` into `src/main/java/com/cwfreeman/darktable/`. A `move`
 of a default-package type (adding the package line and moving the file) would
 have done it in one step.
+- Follow-up: tychofreeman/java-refactor-mcp#292.
 
 ## 2026-11-09: test files for classes that do not exist yet
 
@@ -27,12 +28,16 @@ Needed: tests written first for new classes `RawProfile` and `DateTaken`.
   build then failed with "cannot find symbol" for both classes, so the first red
   was a compile error, not a failing assertion. Not tried: `create_file` with
   `test_for`, then `add_declaration` of each test, which may declare the stubs.
+- Follow-up: tychofreeman/java-refactor-mcp#293.
 
 ## 2026-11-09: imports left after replacing a whole class
 
 `replace_declaration` of `Main` with a new body reported the imports it added
 and removed, but left `import java.io.*;` and an unused
 `import java.util.Optional;`. Removed by hand with `replace_text`.
+- Follow-up: not a tool problem. `Optional` was unused before the edit, and
+  the new code still used `java.io.*` (`File`, `PrintStream`); the tool removes
+  the imports its edit leaves unused. Not filed upstream.
 
 ## 2026-11-10: loops in `Main.run` to streams
 
@@ -49,6 +54,7 @@ Needed: three `for` loops in `Main.run` as stream pipelines.
   return to boolean, `remove_parameter status`, and two `move_parameter`.
   A loop-to-stream tool (`for` + `add` to `map`/`toList`, `for` + effect to
   `forEach`) would have done the first two in one step each.
+- Follow-up: tychofreeman/java-refactor-mcp#294.
 
 ## 2026-11-10: batch line numbers after a step that adds an import
 
@@ -56,8 +62,10 @@ A `batch` with `add_declaration` (which imported `java.util.stream.Stream`)
 first and `replace_statements` by line after it was refused: "line 36 ... was
 rewritten by step 1". Reordered with the declaration last. The import moved
 every line down by one, but the lines themselves were not rewritten.
+- Follow-up: tychofreeman/java-refactor-mcp#295.
 
 ## 2026-11-10: `extract_function` indents the new method's body by 5
 
 The body of the `carryOut` it extracted was indented 5 spaces, not 8. Fixed
 with a `replace_declaration` of the same code.
+- Follow-up: tychofreeman/java-refactor-mcp#296.
