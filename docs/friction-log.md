@@ -69,3 +69,25 @@ every line down by one, but the lines themselves were not rewritten.
 The body of the `carryOut` it extracted was indented 5 spaces, not 8. Fixed
 with a `replace_declaration` of the same code.
 - Follow-up: tychofreeman/java-refactor-mcp#296.
+
+## 2026-11-10: naming a lambda as a closure
+
+Needed: `.map(r -> carryOut(r, rename, out, err))` as `.map(carryOut)`, with
+the lambda in a local `carryOut` that closes over `rename`, `out` and `err`.
+One `extract_variable` should do it; it took four steps and four retries.
+
+- `extract_variable` of the lambda refused: it "calls, assigns or changes a
+  variable", and declaring it before the statement "moves it past
+  plan.renames().stream()". Creating a lambda runs nothing, so nothing moves.
+  Worked around by extracting `plan.renames().stream()` as `renames` first
+  (the lambda then moves past no call), and inlining `renames` after.
+- The extracted local's type was `Function<? super Rename, ? extends Boolean>`,
+  and `.reduce(true, Boolean::logicalAnd)` then did not compile. Fixed in the
+  same batch (check "end") with `replace_statements` of the declaration as
+  `Function<RenamePlan.Rename, Boolean>`. The lambda's target type,
+  `Function<Rename, Boolean>`, would have compiled.
+- Naming the new declaration in the batch: `$2.start` was the
+  `java.util.function.Function` import step 2 added (line 12), not the
+  declaration, and `$2.end` the `.map` line. It took `$2.end-2`, and
+  `$2.end-3` for `renames`, since `$1.start` then counted as rewritten by
+  step 2's import (as in the batch entry above).
