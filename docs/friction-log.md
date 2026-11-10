@@ -93,3 +93,32 @@ One `extract_variable` should do it; it took four steps and four retries.
   step 2's import (as in the batch entry above).
 - Follow-up: tychofreeman/java-refactor-mcp#297 (the lambda refused), #298
   (the wildcard type), and a comment on #295 (the `$N` references).
+
+## 2026-11-10: extracting the Renamer classes
+
+Needed: `Main`'s `renameAll` and `carryOut` as an abstract `Renamer` (fields
+`out`, `err`; `run`) with `DryRunRenamer` and `FileRenamer` each implementing
+`carryOut`. Done through tools: `extract_function`, `move` (x2),
+`add_parameter` + `function_to_method` (x2), `remove_parameter` (x6),
+`push_down`, `fold`, `rename`, `convert_lambda`, `inline`,
+`extract_variable`. Friction:
+
+- **Parameter to field.** No tool turns a parameter into a read of a field of
+  the same name and value. `remove_parameter out` refused while the body read
+  it; done as `replace_expression` `out` to `this.out` at each read, then
+  `remove_parameter`, then `replace_expression` back to `out` once the
+  parameter was gone.
+- **`move` indentation.** Both moved methods landed with their Javadoc and
+  signature at 2 spaces and the extracted body at 5, in a class indented by 4.
+  `replace_declaration` of one later kept the 2, so it took a `replace_text`
+  of the whole method.
+- **A batch's `move` order.** `move Main.renameAll` before `move Main.carryOut`
+  refused (`carryOut` is private in `Main`); moving the callee first worked.
+  The refusal could say so.
+- **`$N` after an import change, again** (java-refactor-mcp#295): `rename` by
+  line 18 after an `inline` that removed the `Function` import was refused as
+  "rewritten by step 5"; reordered.
+- **`batch` retry keeps each step's tool,** so reordering steps of different
+  tools needs the whole batch resent; the refusal suggested `retry`.
+- **`function_to_method`** warned that a null receiver now fails at the call;
+  the receivers were `new Renamer(...)` and `this`, which cannot be null.
