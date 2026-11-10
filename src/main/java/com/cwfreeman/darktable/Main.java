@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
@@ -38,8 +39,9 @@ public class Main {
 
         RenamePlan plan = RenamePlan.of(files);
         plan.skipped().forEach(skipped -> err.println("skipped " + skipped.file() + ": " + skipped.reason()));
+        Function<RenamePlan.Rename, Boolean> carryOut = r -> carryOut(r, rename, out, err);
         boolean allDone = plan.renames().stream()
-                .map(r -> carryOut(r, rename, out, err))
+                .map(carryOut)
                 .reduce(true, Boolean::logicalAnd);
         return allDone ? 0 : 1;
     }
