@@ -33,3 +33,31 @@ Needed: tests written first for new classes `RawProfile` and `DateTaken`.
 `replace_declaration` of `Main` with a new body reported the imports it added
 and removed, but left `import java.io.*;` and an unused
 `import java.util.Optional;`. Removed by hand with `replace_text`.
+
+## 2026-11-10: loops in `Main.run` to streams
+
+Needed: three `for` loops in `Main.run` as stream pipelines.
+
+- No tool turns a loop into a stream. Considered `extract_function` then
+  `fold`, but `fold` matches a method's statements, not a loop's shape, so no
+  sequence composes to it. The two simple loops (expanding paths, printing the
+  skipped files) were replaced with `replace_statements`, after an
+  `add_declaration` of the `filesFor` method the first one maps with.
+- The third loop went through tools: `extract_function` of its body (which
+  passed and returned `status`), two one-line `replace_statements` to return
+  a success flag, `replace_statements` of the loop, `change_type` of the
+  return to boolean, `remove_parameter status`, and two `move_parameter`.
+  A loop-to-stream tool (`for` + `add` to `map`/`toList`, `for` + effect to
+  `forEach`) would have done the first two in one step each.
+
+## 2026-11-10: batch line numbers after a step that adds an import
+
+A `batch` with `add_declaration` (which imported `java.util.stream.Stream`)
+first and `replace_statements` by line after it was refused: "line 36 ... was
+rewritten by step 1". Reordered with the declaration last. The import moved
+every line down by one, but the lines themselves were not rewritten.
+
+## 2026-11-10: `extract_function` indents the new method's body by 5
+
+The body of the `carryOut` it extracted was indented 5 spaces, not 8. Fixed
+with a `replace_declaration` of the same code.

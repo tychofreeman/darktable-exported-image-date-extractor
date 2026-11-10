@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * Renames images darktable exported to the date they were taken (EXIF DateTimeOriginal), so they sort
@@ -33,47 +34,43 @@ public class Main {
             err.println(USAGE);
             return 2;
         }
-        List<File> files = new ArrayList<>();
-        for (String path : paths) {
-            File file = new File(path);
-            if (file.isDirectory()) {
-                files.addAll(imagesIn(file));
-            } else {
-                files.add(file);
-            }
-        }
+        List<File> files = paths.stream().map(File::new).flatMap(Main::filesFor).toList();
 
         RenamePlan plan = RenamePlan.of(files);
-        for (RenamePlan.Skipped skipped : plan.skipped()) {
-            err.println("skipped " + skipped.file() + ": " + skipped.reason());
-        }
-        int status = 0;
-        for (RenamePlan.Rename r : plan.renames()) {
-            out.println(r.from() + " -> " + r.to().getName());
-            if (rename) {
-                try {
-                    Files.move(r.from().toPath(), r.to().toPath());
-                } catch (IOException e) {
-                    err.println("could not rename " + r.from() + ": " + e);
-                    status = 1;
-                }
-            }
-        }
-        return status;
+        plan.skipped().forEach(skipped -> err.println("skipped " + skipped.file() + ": " + skipped.reason()));
+        boolean allDone = plan.renames().stream()
+                .map(r -> carryOut(r, rename, out, err))
+                .reduce(true, Boolean::logicalAnd);
+        return allDone ? 0 : 1;
     }
 
-    private static List<File> imagesIn(File directory) {
-        File[] files = directory.listFiles(file -> file.isFile() && isImage(file));
-        if (files == null) {
-            return List.of();
+    /** Prints a rename and, when asked to, makes it; false when the rename failed. */
+    private static boolean carryOut(RenamePlan.Rename r, boolean rename, PrintStream out, PrintStream err) {
+        out.println(r.from() + " -> " + r.to().getName());
+        if (rename) {
+            try {
+                Files.move(r.from().toPath(), r.to().toPath());
+            } catch (IOException e) {
+                err.println("could not rename " + r.from() + ": " + e);
+                return false;
+            }
         }
-        Arrays.sort(files);
-        return List.of(files);
+        return true;
+    }
+
+    private static Stream<File> imagesIn(File directory) {
+        File[] files = directory.listFiles(file -> file.isFile() && isImage(file));
+        return files == null ? Stream.empty() : Arrays.stream(files).sorted();
     }
 
     private static boolean isImage(File file) {
         String name = file.getName();
         int dot = name.lastIndexOf('.');
         return dot > 0 && IMAGE_EXTENSIONS.contains(name.substring(dot + 1).toLowerCase(Locale.ROOT));
+    }
+
+    /** The images a path stands for: those directly in it when it is a directory, or else the file itself. */
+    private static Stream<File> filesFor(File file) {
+        return file.isDirectory() ? imagesIn(file) : Stream.of(file);
     }
 }
