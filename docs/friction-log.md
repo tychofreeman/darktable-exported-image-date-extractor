@@ -91,3 +91,5 @@ One `extract_variable` should do it; it took four steps and four retries.
   declaration, and `$2.end` the `.map` line. It took `$2.end-2`, and
   `$2.end-3` for `renames`, since `$1.start` then counted as rewritten by
   step 2's import (as in the batch entry above).
+- Follow-up: tychofreeman/java-refactor-mcp#297 (the lambda refused), #298
+  (the wildcard type), and a comment on #295 (the `$N` references).
