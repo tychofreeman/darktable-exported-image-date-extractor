@@ -26,9 +26,10 @@ Typical refactorings for step 1: rename something to what it will mean, extract
 the code you will change into its own method, add the parameter or field the new
 behaviour will need, move a declaration to where the change belongs.
 
-One branch and one PR per item, never commits to `master`. There is no CI yet:
-before pushing, run `./mvnw verify` (see "Build and test"), and merge your own PR
-once it passes. When the user says "do X, then Y", do them in order, each in its
+One branch and one PR per item, never commits to `master`. Before pushing, run
+what CI runs, `./mvnw verify` (see "Build and test"), and merge your own PR once
+CI is green. CI (`.github/workflows/ci.yml`) runs `./mvnw -B verify` on JDK 21
+for every push to `master` and every pull request. When the user says "do X, then Y", do them in order, each in its
 own PR.
 
 When a rule could reasonably go more than one way, set out two or three options
