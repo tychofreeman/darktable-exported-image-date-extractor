@@ -202,3 +202,27 @@ passed to `Renamer` as a `Move` (with `DRY_RUN` for the dry run), and
   `new FileRenamer(out, err)` as `new Renamer(out, err, Renamer::moveFile)`.
   No tool replaces a subclass that differs only by an override with an
   instance holding a function.
+
+## 2026-11-10: splitting `RenamePlan.of`
+
+Needed: `of` as reading the dates (`datesTaken`) and choosing names
+(`renamesFor`, with the existence check passed in so a test needs no files).
+Done with `extract_function` (x2), `add_parameter exists` (`File::exists`),
+`replace_expression` of `target.exists()` with `exists.test(target)`, and
+`inline` (x2). Friction:
+
+- **Indentation and qualified names.** Both extracted bodies were indented by
+  5 (java-refactor-mcp#296, fixed after this jar), the parameter type was
+  written `java.util.function.Predicate<File>` with no import, and the record
+  and return types as `RenamePlan.Skipped` and `RenamePlan.Rename` inside
+  `RenamePlan`. Rewritten with `replace_declaration` of each method.
+- **`inline` of a record accessor.** `inline skipped`
+  (`= datesTakenResult.skipped()`) refused: it "calls ... a variable" and
+  would move past `renamesFor(...)`. An accessor of a record is a read; the
+  move changes nothing. Finished `of` with `replace_statements`.
+- **`extract_function` name clash with a record accessor.** `renames` refused
+  because the record has `renames()`; named it `renamesFor`. Fair.
+- **Test sources again.** `add_declaration` of a test in `RenamePlanTest` did
+  not add its imports (`LocalDateTime`, `Map`, `Set`), though `imports` named
+  them, and the build failed; added with `replace_text`. Same cause as the
+  entry above: `src/test/java` is not one of the server's source roots.

@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 /**
@@ -27,6 +28,13 @@ record RenamePlan(List<Rename> renames, List<Skipped> skipped) {
     private static final DateTimeFormatter NAME = DateTimeFormatter.ofPattern("uuuu-MM-dd_HH-mm-ss");
 
     static RenamePlan of(List<File> files) {
+        DatesTakenResult read = datesTaken(files);
+        List<Rename> renames = renamesFor(read.dated(), File::exists);
+        return new RenamePlan(List.copyOf(renames), List.copyOf(read.skipped()));
+    }
+
+    /** When each file was taken, in the order given, and the files skipped, with the reason. */
+    private static DatesTakenResult datesTaken(List<File> files) {
         List<Skipped> skipped = new ArrayList<>();
         Map<File, LocalDateTime> dated = new LinkedHashMap<>();
         for (File file : files) {
@@ -37,11 +45,21 @@ record RenamePlan(List<Rename> renames, List<Skipped> skipped) {
                 } else {
                     skipped.add(new Skipped(file, "no EXIF DateTimeOriginal"));
                 }
-            } catch (Exception e) {
+            } catch (Exception e) { // metadata-extractor also throws unchecked exceptions on damaged files
                 skipped.add(new Skipped(file, e.getMessage() != null ? e.getMessage() : e.toString()));
             }
         }
+        return new DatesTakenResult(skipped, dated);
+    }
 
+    private record DatesTakenResult(List<Skipped> skipped, Map<File, LocalDateTime> dated) {
+    }
+
+    /**
+     * The renames for the dated files: each to the first name for its date that no file has (exists)
+     * and no rename before it claimed. A file already named for its date keeps its name.
+     */
+    static List<Rename> renamesFor(Map<File, LocalDateTime> dated, Predicate<File> exists) {
         List<Rename> renames = new ArrayList<>();
         Set<File> claimed = new HashSet<>();
         dated.forEach((file, taken) -> {
@@ -57,11 +75,11 @@ record RenamePlan(List<Rename> renames, List<Skipped> skipped) {
             int n = 1;
             do {
                 target = new File(file.getParentFile(), name(taken, n++, extension(file)));
-            } while (target.exists() || claimed.contains(target.getAbsoluteFile()));
+            } while (exists.test(target) || claimed.contains(target.getAbsoluteFile()));
             claimed.add(target.getAbsoluteFile());
             renames.add(new Rename(file, target));
         });
-        return new RenamePlan(List.copyOf(renames), List.copyOf(skipped));
+        return renames;
     }
 
     private static String name(LocalDateTime taken, int n, String extension) {
