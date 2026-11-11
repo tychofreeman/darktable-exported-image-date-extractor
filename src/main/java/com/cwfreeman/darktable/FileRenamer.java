@@ -10,10 +10,9 @@ final class FileRenamer extends Renamer {
         super(out, err);
     }
 
-    /** Prints the rename and makes it; false when the file could not be moved. */
+    /** Moves the file; false, after writing why to err, when it could not be moved. */
     @Override
-    boolean carryOut(RenamePlan.Rename r) {
-        print(r);
+    boolean move(RenamePlan.Rename r) {
         try {
             Files.move(r.from().toPath(), r.to().toPath());
         } catch (IOException e) {

@@ -122,3 +122,30 @@ Needed: `Main`'s `renameAll` and `carryOut` as an abstract `Renamer` (fields
   tools needs the whole batch resent; the refusal suggested `retry`.
 - **`function_to_method`** warned that a null receiver now fails at the call;
   the receivers were `new Renamer(...)` and `this`, which cannot be null.
+
+## 2026-11-10: folding the dry run into `Renamer`
+
+Needed: `DryRunRenamer` folded into a concrete `Renamer` whose `carryOut`
+prints and then calls `move` (a dry run's, returning true), with `FileRenamer`
+overriding only `move`.
+
+- **Pulling up over an abstract method.** `pull_up DryRunRenamer.carryOut`
+  refused: "Renamer already declares carryOut". The declaration was abstract,
+  so pulling up a body onto it is the usual way to make it concrete. Deleting
+  the abstract one first refused too (it is called). Done as a
+  `replace_declaration` of `Renamer.carryOut` with a copy of the dry run's
+  body, then deleting `DryRunRenamer`.
+- **Extracted methods are private.** `extract_function` of the same name in
+  `FileRenamer` and `Renamer` worked only with the subclass first (the other
+  order refused: another `move` "could change which one calls pick"), and both
+  came out `private`, so neither overrode the other. Made package-private, with
+  `@Override`, by `replace_text`. An option for the new method's visibility
+  (or an `override` of the superclass's) would have done it.
+- **Removing an override identical to the inherited method.**
+  `FileRenamer.carryOut` was `print(r); return move(r);`, the same as
+  `Renamer`'s. `replace_declaration` with empty content refused ("its callers
+  would run Renamer's instead"), and suggested changing it to call super and
+  then inlining it; after `return super.carryOut(r);` the delete refused the
+  same way, and `inline` refused because the body uses `super`. Deleted with
+  `replace_text`. A delete of an override whose body is the inherited one's, or
+  only `return super.m(args)`, keeps behavior.
