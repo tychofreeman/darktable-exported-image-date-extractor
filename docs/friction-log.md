@@ -202,6 +202,10 @@ passed to `Renamer` as a `Move` (with `DRY_RUN` for the dry run), and
   `new FileRenamer(out, err)` as `new Renamer(out, err, Renamer::moveFile)`.
   No tool replaces a subclass that differs only by an override with an
   instance holding a function.
+- Follow-up: tychofreeman/java-refactor-mcp#330 (`move` to the superclass),
+  #331 (constructor by name), #332 (subclass to a function), a comment on #315
+  (field to parameter). Not filed: test sources and the `$N` import case,
+  fixed in v0.28.2 (#293) and after; the server ran v0.28.1.
 
 ## 2026-11-10: splitting `RenamePlan.of`
 
@@ -226,3 +230,6 @@ Done with `extract_function` (x2), `add_parameter exists` (`File::exists`),
   not add its imports (`LocalDateTime`, `Map`, `Set`), though `imports` named
   them, and the build failed; added with `replace_text`. Same cause as the
   entry above: `src/test/java` is not one of the server's source roots.
+- Follow-up: tychofreeman/java-refactor-mcp#328 (qualified nested types), #329
+  (`inline` of a record accessor). Indentation (#296) and test sources (#293)
+  are fixed after v0.28.1, the version the server ran.
