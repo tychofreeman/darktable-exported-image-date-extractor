@@ -68,4 +68,12 @@ class MainTest {
         assertEquals(2, run());
         assertTrue(err.toString(StandardCharsets.UTF_8).startsWith("usage:"));
     }
+
+    @Test
+    void printsUsageForAnOptionItDoesNotKnow() throws Exception {
+        Path photo = copy("darktable-5.4-exif.png", "DSC_2584.png");
+        assertEquals(2, run("--rnemae", photo.toString()));
+        assertTrue(err.toString(StandardCharsets.UTF_8).startsWith("usage:"));
+        assertEquals("", out.toString(StandardCharsets.UTF_8));
+    }
 }

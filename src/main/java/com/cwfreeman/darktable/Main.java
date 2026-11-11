@@ -28,7 +28,7 @@ public class Main {
     static int run(String[] args, PrintStream out, PrintStream err) {
         List<String> paths = new ArrayList<>(List.of(args));
         boolean rename = paths.remove("--rename");
-        if (paths.isEmpty()) {
+        if (paths.isEmpty() || paths.stream().anyMatch(path -> path.startsWith("-"))) {
             err.println(USAGE);
             return 2;
         }
