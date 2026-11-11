@@ -122,6 +122,10 @@ Needed: `Main`'s `renameAll` and `carryOut` as an abstract `Renamer` (fields
   tools needs the whole batch resent; the refusal suggested `retry`.
 - **`function_to_method`** warned that a null receiver now fails at the call;
   the receivers were `new Renamer(...)` and `this`, which cannot be null.
+- Follow-up: tychofreeman/java-refactor-mcp#315 (parameter to field), #316
+  (`move` indentation), #317 (`move` order), #318 (`batch` retry), #319
+  (`function_to_method` warning). The `$N` case was not filed again: #295 was
+  closed as fixed after this jar (v0.28.1) was released.
 
 ## 2026-11-10: folding the dry run into `Renamer`
 
@@ -149,3 +153,5 @@ overriding only `move`.
   same way, and `inline` refused because the body uses `super`. Deleted with
   `replace_text`. A delete of an override whose body is the inherited one's, or
   only `return super.m(args)`, keeps behavior.
+- Follow-up: tychofreeman/java-refactor-mcp#320 (`pull_up` over an abstract
+  method), #321 (extracting an override), #322 (deleting an override).
