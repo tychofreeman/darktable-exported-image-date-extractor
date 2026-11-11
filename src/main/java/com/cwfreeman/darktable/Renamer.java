@@ -1,8 +1,6 @@
 package com.cwfreeman.darktable;
 
-import java.io.File;
 import java.io.PrintStream;
-import java.util.List;
 
 /**
  * Carries out a rename plan, writing what it does to out and what goes wrong to err. On its own a
@@ -18,11 +16,10 @@ class Renamer {
     }
 
     /**
-     * Carries out the plan for files: prints what it skips, then carries out each rename. 0 when
-     * every rename worked, else 1.
+     * Carries out a plan: prints what it skips, then carries out each rename. 0 when every rename
+     * worked, else 1.
      */
-    int run(List<File> files) {
-        RenamePlan plan = RenamePlan.of(files);
+    int run(RenamePlan plan) {
         plan.skipped().forEach(skipped -> err.println("skipped " + skipped.file() + ": " + skipped.reason()));
         boolean allDone = plan.renames().stream()
                 .map(this::carryOut)

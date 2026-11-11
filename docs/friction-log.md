@@ -155,3 +155,13 @@ overriding only `move`.
   only `return super.m(args)`, keeps behavior.
 - Follow-up: tychofreeman/java-refactor-mcp#320 (`pull_up` over an abstract
   method), #321 (extracting an override), #322 (deleting an override).
+
+## 2026-11-10: `Renamer.run` taking a `RenamePlan`
+
+Done through tools in one batch: `add_parameter planned` (each call passes
+`RenamePlan.of(files)`), `replace_expression` of the local's initializer with
+`planned`, `inline plan`, `remove_parameter files`, `rename planned` to `plan`.
+No hand edits to code. The `rename` by `$4.start` named the import line
+`remove_parameter` had removed (line 3), not the signature; `$4.end` worked.
+That is java-refactor-mcp#295, closed after the jar in use here (built
+2026-11-09, older than v0.29.0); not filed again.
