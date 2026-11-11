@@ -6,7 +6,10 @@ import org.junit.jupiter.api.io.TempDir;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -79,5 +82,14 @@ class RenamePlanTest {
         assertEquals(List.of(), plan.renames());
         assertEquals(1, plan.skipped().size());
         assertEquals(photo, plan.skipped().get(0).file());
+    }
+
+    @Test
+    void takesTheFirstNameNoFileHas() {
+        File photo = new File("photos", "DSC_2584.png");
+        LocalDateTime taken = LocalDateTime.of(2024, 12, 30, 23, 59, 58);
+        Set<File> there = Set.of(new File("photos", TAKEN + ".png"), new File("photos", TAKEN + "_2.png"));
+        assertEquals(List.of(new RenamePlan.Rename(photo, new File("photos", TAKEN + "_3.png"))),
+                RenamePlan.renamesFor(Map.of(photo, taken), there::contains));
     }
 }
