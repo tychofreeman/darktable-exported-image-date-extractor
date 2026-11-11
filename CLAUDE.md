@@ -137,6 +137,19 @@ taken 2024-12-30 23:59:58: a date the week-based year `YYYY` gets wrong.
   PNG; the big-endian payload came from a JPEG (`exiftool -ExifByteOrder=MM`,
   then `exiftool -b -EXIF`).
 - `no-exif.png`: the export without its `eXIf` and XMP chunks.
+- `darktable-5.4-subsec.png`: a darktable 5.4 export, made as above, of a 16x16
+  JPEG given `SubSecTimeOriginal=123` and `OffsetTimeOriginal=+01:00` by
+  exiftool; darktable keeps both.
+
+## Decisions
+
+- **Sub-seconds in the name** (2026-11-10): `2024-12-30_23-59-58.123.png`, the
+  milliseconds of `SubSecTimeOriginal` after a dot, as ISO 8601 writes a
+  fraction of a second; a file without it keeps `2024-12-30_23-59-58.png`, and
+  `_2`, `_3` remain only for names that would still be the same. Beat:
+  `-123` (one dot, but reads as part of the time or a counter), appended
+  Pixel-style `58123` (runs the seconds and milliseconds together), and
+  keeping `_2` ordered by sub-seconds (the name would not show the order).
 
 ## Things not to do
 

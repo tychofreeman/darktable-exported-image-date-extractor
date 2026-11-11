@@ -92,4 +92,16 @@ class RenamePlanTest {
         assertEquals(List.of(new RenamePlan.Rename(photo, new File("photos", TAKEN + "_3.png"))),
                 RenamePlan.renamesFor(Map.of(photo, taken), there::contains));
     }
+
+    @Test
+    void putsTheFractionOfASecondInTheName() throws Exception {
+        File photo = copy("darktable-5.4-subsec.png", "DSC_2584.png");
+        assertEquals(List.of(new RenamePlan.Rename(photo, in(TAKEN + ".123.png"))), RenamePlan.of(List.of(photo)).renames());
+    }
+
+    @Test
+    void leavesAFileAlreadyNamedForItsDateToTheMillisecond() throws Exception {
+        File photo = copy("darktable-5.4-subsec.png", TAKEN + ".123.png");
+        assertEquals(List.of(), RenamePlan.of(List.of(photo)).renames());
+    }
 }
