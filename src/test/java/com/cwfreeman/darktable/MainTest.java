@@ -76,4 +76,17 @@ class MainTest {
         assertTrue(err.toString(StandardCharsets.UTF_8).startsWith("usage:"));
         assertEquals("", out.toString(StandardCharsets.UTF_8));
     }
+
+    @Test
+    void printsAJsonReportWhenAsked() throws Exception {
+        Path photo = copy("darktable-5.4-exif.png", "DSC_2584.png");
+        Path blank = copy("no-exif.png", "DSC_2585.png");
+        assertEquals(0, run("--json", photo.toString(), blank.toString()));
+        assertEquals("{\"dryRun\":true,"
+                        + "\"renamed\":[{\"from\":\"" + photo + "\",\"to\":\"" + dir.resolve("2024-12-30_23-59-58.png") + "\"}],"
+                        + "\"skipped\":[{\"file\":\"" + blank + "\",\"reason\":\"no EXIF DateTimeOriginal\"}],"
+                        + "\"failed\":[]}" + System.lineSeparator(),
+                out.toString(StandardCharsets.UTF_8));
+        assertEquals("", err.toString(StandardCharsets.UTF_8));
+    }
 }
