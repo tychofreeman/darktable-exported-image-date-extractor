@@ -26,4 +26,10 @@ class DateTakenTest {
     void isEmptyForAnImageWithoutExif() throws Exception {
         assertEquals(Optional.empty(), DateTaken.read(fixture("no-exif.png")));
     }
+
+    @Test
+    void readsTheSubSecondsOfSubSecTimeOriginal() throws Exception {
+        assertEquals(Optional.of(LocalDateTime.of(2024, 12, 30, 23, 59, 58, 123_000_000)),
+                DateTaken.read(fixture("darktable-5.4-subsec.png")));
+    }
 }

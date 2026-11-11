@@ -15,7 +15,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -35,10 +34,9 @@ final class DateTaken {
             new ExifReader().extract(new ByteArrayReader(tiff), metadata);
         }
         return metadata.getDirectoriesOfType(ExifSubIFDDirectory.class).stream()
-                .map(directory -> directory.getString(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL))
-                .filter(Objects::nonNull)
+                .filter(directory -> directory.getString(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL) != null)
                 .findFirst()
-                .map(date -> LocalDateTime.parse(date.trim(), EXIF_DATE));
+                .map(DateTaken::dateTaken);
     }
 
     private static List<byte[]> rawProfileExif(Metadata metadata) {
@@ -56,5 +54,15 @@ final class DateTaken {
             }
         }
         return profiles;
+    }
+
+    /** The directory's DateTimeOriginal, with the fraction of a second in SubSecTimeOriginal when it has one. */
+    private static LocalDateTime dateTaken(ExifSubIFDDirectory directory) {
+        LocalDateTime taken = LocalDateTime.parse(directory.getString(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL).trim(), EXIF_DATE);
+        String subSeconds = directory.getString(ExifSubIFDDirectory.TAG_SUBSECOND_TIME_ORIGINAL);
+        if (subSeconds == null || !subSeconds.trim().matches("\\d+")) {
+            return taken;
+        }
+        return taken.withNano(Integer.parseInt((subSeconds.trim() + "00000000").substring(0, 9)));
     }
 }

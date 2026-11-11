@@ -14,9 +14,9 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 /**
- * Which files to rename to the date they were taken (2024-12-30_23-59-58.png), worked out before any is
- * renamed. Photos taken in the same second, or whose name is already used, get _2, _3, ... after the
- * date. A file already named for its date keeps its name; one without a date is skipped, with the reason.
+ * Which files to rename to the date they were taken (2024-12-30_23-59-58.png, or
+ * 2024-12-30_23-59-58.123.png with SubSecTimeOriginal), worked out before any is renamed. Photos
+ * whose name would be the same, or is already used, get _2, _3, ... after the date. A file already named for its date keeps its name; one without a date is skipped, with the reason.
  */
 record RenamePlan(List<Rename> renames, List<Skipped> skipped) {
     record Rename(File from, File to) {
@@ -83,11 +83,11 @@ record RenamePlan(List<Rename> renames, List<Skipped> skipped) {
     }
 
     private static String name(LocalDateTime taken, int n, String extension) {
-        return NAME.format(taken) + (n == 1 ? "" : "_" + n) + extension;
+        return stem(taken) + (n == 1 ? "" : "_" + n) + extension;
     }
 
     private static boolean isNamedFor(File file, LocalDateTime taken) {
-        String pattern = Pattern.quote(NAME.format(taken)) + "(_\\d+)?" + Pattern.quote(extension(file));
+        String pattern = Pattern.quote(stem(taken)) + "(_\\d+)?" + Pattern.quote(extension(file));
         return file.getName().matches(pattern);
     }
 
@@ -96,5 +96,13 @@ record RenamePlan(List<Rename> renames, List<Skipped> skipped) {
         String name = file.getName();
         int dot = name.lastIndexOf('.');
         return dot > 0 ? name.substring(dot) : "";
+    }
+
+    /**
+     * The name for a date, before any _2 and the extension: 2024-12-30_23-59-58, then the milliseconds
+     * (.123) when the date has a fraction of a second.
+     */
+    private static String stem(LocalDateTime taken) {
+        return NAME.format(taken) + (taken.getNano() == 0 ? "" : String.format(".%03d", taken.getNano() / 1_000_000));
     }
 }
