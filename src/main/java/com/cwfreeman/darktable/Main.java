@@ -15,9 +15,10 @@ import java.util.stream.Stream;
  */
 public class Main {
     private static final String USAGE = String.join(System.lineSeparator(),
-            "usage: darktable-date-namer [--rename] <image or directory>...",
+            "usage: darktable-date-namer [--rename] [--json] <image or directory>...",
             "  Prints how each image would be renamed to the date it was taken (2024-12-30_23-59-58.png);",
-            "  with --rename, renames them. A directory stands for the images directly in it.");
+            "  with --rename, renames them. A directory stands for the images directly in it.",
+            "  With --json, prints one JSON object instead: dryRun, renamed, skipped and failed.");
 
     private static final Set<String> IMAGE_EXTENSIONS = Set.of("png", "jpg", "jpeg", "tif", "tiff", "webp");
 
@@ -28,13 +29,14 @@ public class Main {
     static int run(String[] args, PrintStream out, PrintStream err) {
         List<String> paths = new ArrayList<>(List.of(args));
         boolean rename = paths.remove("--rename");
+        boolean json = paths.remove("--json");
         if (paths.isEmpty() || paths.stream().anyMatch(path -> path.startsWith("-"))) {
             err.println(USAGE);
             return 2;
         }
         List<File> files = paths.stream().map(File::new).flatMap(Main::filesFor).toList();
 
-        Renamer renamer = new Renamer(out, err, rename ? Renamer::moveFile : Renamer.DRY_RUN);
+        Renamer renamer = new Renamer(json ? new JsonReport(out, !rename) : new TextReport(out, err), rename ? Renamer::moveFile : Renamer.DRY_RUN);
         return renamer.run(RenamePlan.of(files));
     }
 

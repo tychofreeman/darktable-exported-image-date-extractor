@@ -31,7 +31,7 @@ class RenamerTest {
     void aRenameThatFailsIsReportedAndTheRunFails() {
         File missing = dir.resolve("missing.png").toFile();
         RenamePlan.Rename rename = new RenamePlan.Rename(missing, dir.resolve("2024-12-30_23-59-58.png").toFile());
-        assertEquals(1, new Renamer(outStream, errStream, Renamer::moveFile).run(plan(rename)));
+        assertEquals(1, new Renamer(new TextReport(outStream, errStream), Renamer::moveFile).run(plan(rename)));
         assertTrue(err.toString(StandardCharsets.UTF_8).startsWith("could not rename " + missing + ": "));
     }
 
@@ -39,7 +39,7 @@ class RenamerTest {
     void theRenamesAfterOneThatFailsAreStillMade() throws Exception {
         Path photo = Files.createFile(dir.resolve("DSC_2584.png"));
         Path renamed = dir.resolve("2024-12-30_23-59-58.png");
-        assertEquals(1, new Renamer(outStream, errStream, Renamer::moveFile).run(plan(
+        assertEquals(1, new Renamer(new TextReport(outStream, errStream), Renamer::moveFile).run(plan(
                 new RenamePlan.Rename(dir.resolve("missing.png").toFile(), dir.resolve("other.png").toFile()),
                 new RenamePlan.Rename(photo.toFile(), renamed.toFile()))));
         assertTrue(Files.exists(renamed));
@@ -49,7 +49,7 @@ class RenamerTest {
     void reportsTheSkippedFiles() {
         File file = dir.resolve("no-exif.png").toFile();
         RenamePlan plan = new RenamePlan(List.of(), List.of(new RenamePlan.Skipped(file, "no EXIF DateTimeOriginal")));
-        assertEquals(0, new Renamer(outStream, errStream, Renamer.DRY_RUN).run(plan));
+        assertEquals(0, new Renamer(new TextReport(outStream, errStream), Renamer.DRY_RUN).run(plan));
         assertEquals("skipped " + file + ": no EXIF DateTimeOriginal" + System.lineSeparator(), err.toString(StandardCharsets.UTF_8));
     }
 }

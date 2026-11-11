@@ -2,8 +2,10 @@
 
 Renames images darktable exported to the date they were taken (EXIF
 DateTimeOriginal): `2024-12-30_23-59-58.png`. `Main` is the command line,
-`RenamePlan` works out the renames, `DateTaken` reads the date, and `RawProfile`
-decodes the hex EXIF that older darktable versions wrote into PNGs.
+`RenamePlan` works out the renames, `Renamer` carries them out and tells a
+`Report` (`TextReport`, or `JsonReport` with `--json`), `DateTaken` reads the
+date, and `RawProfile` decodes the hex EXIF that older darktable versions wrote
+into PNGs.
 
 ## How we work
 
@@ -150,6 +152,12 @@ taken 2024-12-30 23:59:58: a date the week-based year `YYYY` gets wrong.
   `-123` (one dot, but reads as part of the time or a counter), appended
   Pixel-style `58123` (runs the seconds and milliseconds together), and
   keeping `_2` ordered by sub-seconds (the name would not show the order).
+- **JSON output** (2026-11-10): `--json` prints one object to stdout,
+  `{"dryRun", "renamed": [{from, to}], "skipped": [{file, reason}], "failed":
+  [{from, to, error}]}`, the same shape in a dry run (`renamed` then lists the
+  renames that would be made). Beat: always JSON (harder to read at a terminal)
+  and a separate `planned` key for a dry run (two shapes for a script).
+  Written by hand, not with a JSON library: four lists of strings.
 
 ## Things not to do
 

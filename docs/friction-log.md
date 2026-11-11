@@ -233,3 +233,33 @@ Done with `extract_function` (x2), `add_parameter exists` (`File::exists`),
 - Follow-up: tychofreeman/java-refactor-mcp#328 (qualified nested types), #329
   (`inline` of a record accessor). Indentation (#296) and test sources (#293)
   are fixed after v0.28.1, the version the server ran.
+
+## 2026-11-10: `--json`, and the `Report` it needed
+
+Needed: `Renamer`'s printing behind a `Report` (`TextReport`, `JsonReport`),
+and `Move` throwing `IOException` rather than printing to `err`.
+
+- **A functional interface's contract.** `Move.apply(r, err)` returning
+  boolean to `apply(r) throws IOException`, with its two implementations and
+  its one call, took four `replace_declaration`s in one batch (check end): no
+  tool changes what a functional interface throws or returns across its
+  lambdas and method references.
+- **Moving the print after the move.** `carryOut` printed, then moved; a report
+  of what happened needs the move first. `move_statement` cannot take a
+  statement past a `try`; rewritten with `replace_declaration`.
+- **`fold` into a lambda's expression body.** `fold Renamer.skipped` found no
+  match for `skipped -> err.println(...)`, the same statement as the method's
+  body; `convert_lambda` to an anonymous class (to get a block) refused for
+  the wildcard in `forEach`'s type. Replaced with `this::skipped` by
+  `replace_expression`.
+- **`extract_type` of fields a constructor sets.** `extract_type Renamer
+  [out, err] as report` refused: "out is final and set by a constructor,
+  which could not set it through the holder". The constructor could pass its
+  parameters to `new TextReport(out, err)`. Wrote `Report` and `TextReport`
+  with `create_file`, then moved `Renamer` onto them through tools:
+  `add_parameter report` (`new TextReport(out, err)`), `replace_expression`
+  of each call of a report method, `replace_declaration` deleting the old
+  methods and fields, `remove_parameter out` and `err`.
+- **`batch` retry swapping two steps of one tool** worked ("step 6" and
+  "step 7" given each other's arguments), for the delete that refused while
+  another method still called it.
