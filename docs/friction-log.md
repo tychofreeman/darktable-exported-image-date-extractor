@@ -165,3 +165,40 @@ No hand edits to code. The `rename` by `$4.start` named the import line
 `remove_parameter` had removed (line 3), not the signature; `$4.end` worked.
 That is java-refactor-mcp#295, closed after the jar in use here (built
 2026-11-09, older than v0.29.0); not filed again.
+
+## 2026-11-10: `FileRenamer` to a `Move` passed to `Renamer`
+
+Needed: `FileRenamer`'s `move` override as a static `Renamer.moveFile(r, err)`,
+passed to `Renamer` as a `Move` (with `DRY_RUN` for the dry run), and
+`FileRenamer` deleted.
+
+- **Test sources are not a source root.** `inspect` lists only
+  `src/main/java`, so `add_parameter` on `Renamer`'s constructor rewrote the
+  calls in `Main` and `FileRenamer` but not the one in `RenamerTest`, and the
+  type check passed; `pattern` searches miss the tests too. Only `./mvnw verify`
+  would have caught it. Fixed the test calls with `replace_expression`.
+- **Field to parameter, again** (java-refactor-mcp#315, the other way):
+  `add_parameter err` to the extracted `moveFile` refused because a parameter
+  `err` would hide the field the body reads. Done as `add_parameter log`,
+  `replace_expression` of the body's `err` with `log`, `move`, `rename log`
+  to `err`.
+- **`move` to the superclass that declares the field.** Moving the instance
+  method `FileRenamer.moveFile` to `Renamer` (as static) refused: "Cannot make
+  a static reference to the non-static field err"; the inherited field was not
+  rewritten as `receiver.err`. Once it read no field, `move` kept an unused
+  `FileRenamer receiver` parameter (removed with `remove_parameter`) and
+  indented the Javadoc by 2 (java-refactor-mcp#316).
+- **`add_parameter` by a constructor's name.** `name: "Renamer"` refused,
+  "Renamer is not a method or constructor", though the description says a
+  constructor is found by its type's name; `line` worked.
+- **An inserted declaration counts as rewriting the lines after it**
+  (java-refactor-mcp#295): `add_parameter` by line 15 after an
+  `add_declaration` that inserted a field at line 15 was refused; reordered.
+- **Swapping an override for a strategy.** Hand edits, each equal only given
+  which `Move` each instance holds: `Renamer.move`'s `return true;` (and
+  `carryOut`'s call of it) as `move.apply(r, err)`, valid since every plain
+  `Renamer` got `DRY_RUN`; deleting `FileRenamer.move`, whose instances got
+  `Renamer::moveFile` (by `replace_text`, as in java-refactor-mcp#322); and
+  `new FileRenamer(out, err)` as `new Renamer(out, err, Renamer::moveFile)`.
+  No tool replaces a subclass that differs only by an override with an
+  instance holding a function.

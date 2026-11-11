@@ -34,7 +34,7 @@ public class Main {
         }
         List<File> files = paths.stream().map(File::new).flatMap(Main::filesFor).toList();
 
-        Renamer renamer = rename ? new FileRenamer(out, err) : new Renamer(out, err);
+        Renamer renamer = new Renamer(out, err, rename ? Renamer::moveFile : Renamer.DRY_RUN);
         return renamer.run(RenamePlan.of(files));
     }
 
