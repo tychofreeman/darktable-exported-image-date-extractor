@@ -263,3 +263,7 @@ and `Move` throwing `IOException` rather than printing to `err`.
 - **`batch` retry swapping two steps of one tool** worked ("step 6" and
   "step 7" given each other's arguments), for the delete that refused while
   another method still called it.
+- Follow-up: tychofreeman/java-refactor-mcp#342 (a functional interface's
+  contract), #343 (`move_statement` past a `try`), #344 (`fold` into a
+  lambda; `convert_lambda` with a wildcard), #345 (`extract_type` of fields a
+  constructor sets).
